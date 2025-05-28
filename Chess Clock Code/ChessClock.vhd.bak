@@ -1,0 +1,128 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity ChessClock is
+    Port (
+        CLOCK_50 : in STD_LOGIC;
+        KEY : in STD_LOGIC_VECTOR(3 downto 0);
+        HEX0, HEX1, HEX2, HEX3, HEX4, HEX5 : out STD_LOGIC_VECTOR(6 downto 0);
+        LEDR : out STD_LOGIC_VECTOR(0 downto 0)
+    );
+end ChessClock;
+
+architecture Behavioral of ChessClock is
+
+    signal sec_counter : integer range 0 to 49_999_999 := 0;
+    signal one_sec_pulse : STD_LOGIC := '0';
+    
+    signal minutes_p1, seconds_p1 : integer range 0 to 59 := 10;
+    signal minutes_p2, seconds_p2 : integer range 0 to 59 := 10;
+    signal current_player : STD_LOGIC := '1';
+    signal running : STD_LOGIC := '0';
+    signal pause : STD_LOGIC := '0';
+    signal reset_counter : integer range 0 to 150_000_000 := 0;
+    signal reset_flag : STD_LOGIC := '0';
+
+begin
+    
+    -- Clock Divider to Generate 1Hz Pulse
+    process (CLOCK_50)
+    begin
+        if rising_edge(CLOCK_50) then
+            if sec_counter = 49_999_999 then
+                sec_counter <= 0;
+                one_sec_pulse <= '1';
+            else
+                sec_counter <= sec_counter + 1;
+                one_sec_pulse <= '0';
+            end if;
+        end if;
+    end process;
+    
+    -- Timer Countdown Logic
+    process (CLOCK_50)
+    begin
+        if rising_edge(CLOCK_50) then
+            if running = '1' and pause = '0' and one_sec_pulse = '1' then
+                if current_player = '1' then
+                    if seconds_p1 = 0 then
+                        if minutes_p1 > 0 then
+                            minutes_p1 <= minutes_p1 - 1;
+                            seconds_p1 <= 59;
+                        end if;
+                    else
+                        seconds_p1 <= seconds_p1 - 1;
+                    end if;
+                else
+                    if seconds_p2 = 0 then
+                        if minutes_p2 > 0 then
+                            minutes_p2 <= minutes_p2 - 1;
+                            seconds_p2 <= 59;
+                        end if;
+                    else
+                        seconds_p2 <= seconds_p2 - 1;
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process;
+    
+    -- Button Handling
+    process (CLOCK_50)
+    begin
+        if rising_edge(CLOCK_50) then
+            if KEY(0) = '0' then -- Play Button
+                running <= '1';
+            elsif KEY(1) = '0' then -- Pause/Reset Button
+                pause <= '1';
+                reset_counter <= reset_counter + 1;
+                if reset_counter > 150_000_000 then
+                    reset_flag <= '1';
+                end if;
+            else
+                pause <= '0';
+                reset_counter <= 0;
+                reset_flag <= '0';
+            end if;
+            
+            if reset_flag = '1' then -- Reset all settings
+                running <= '0';
+                minutes_p1 <= 10;
+                seconds_p1 <= 0;
+                minutes_p2 <= 10;
+                seconds_p2 <= 0;
+                current_player <= '1';
+                reset_flag <= '0';
+            end if;
+            
+            if KEY(2) = '0' then -- Switch Player Button
+                if running = '1' then
+                    current_player <= not current_player;
+                end if;
+            end if;
+            
+            if KEY(3) = '0' then -- Increase Time Button
+                if minutes_p1 = 10 then
+                    minutes_p1 <= 20;
+                    minutes_p2 <= 20;
+                else
+                    minutes_p1 <= 10;
+                    minutes_p2 <= 10;
+                end if;
+            end if;
+        end if;
+    end process;
+    
+    -- Display Driver (Stub, Replace with Actual Seven-Segment Code)
+    HEX5 <= "1000000"; -- Display 'P'
+    HEX4 <= "0110000" when current_player = '1' else "1101101"; -- '1' or '2'
+    HEX3 <= "0000001"; -- Minutes Tens (Stub, Implement BCD Conversion)
+    HEX2 <= "0000001"; -- Minutes Units
+    HEX1 <= "0000001"; -- Seconds Tens
+    HEX0 <= "0000001"; -- Seconds Units
+    
+    LEDR(0) <= running;
+    
+end Behavioral;

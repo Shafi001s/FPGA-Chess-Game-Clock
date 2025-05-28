@@ -1,0 +1,21 @@
+Quartus Prime Archive log --	C:/ChessClock/ChessClock.qarlog
+
+Archive:	C:/ChessClock/ChessClock.qar
+Date:		Wed Jan 29 22:18:50 2025
+Quartus Prime		23.1std.1 Build 993 05/14/2024 SC Lite Edition
+
+	=========== Files Selected: ===========
+C:/ChessClock/ChessClock.qpf
+C:/ChessClock/ChessClock.qsf
+C:/ChessClock/ChessClock.vhd
+c:/intelfpga_lite/23.1std/quartus/bin64/assignment_defaults.qdf
+	======= Total: 4 files to archive =======
+
+	================ Status: ===============
+All files archived successfully.
+
+
+******* Archived project restoration attempt on Fri Jan 31 13:22:42 2025
+Source archive file:	C:/ChessClock/ChessClock.qar
+Archive was extracted into	C:/ChessClock/ChessClock_restored/
+		 - successfully.
